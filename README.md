@@ -1,6 +1,6 @@
 # HT-Malignancy-Prediction-Model
 
-This repository contains R code for our paper, entitled "
+This repository contains R code for our paper, entitled ""
 
 More information can be found in the paper:
 
