@@ -186,10 +186,6 @@ CIG_MISS_REG = lrm(is.na(REC_HIST_CIGARETTE) ~ OUT_MALIG + Out_Death_1 + rcs(DON
                    data=data_miss, x=TRUE, y=TRUE, maxit=1000)
 #hmr_imp[[1]]["REC_HIST_CIGARETTE",]
 
-
-
-
-
 #REC_DR_MM_EQUIV_TX
 DR_MISS_REG = lrm(is.na(REC_DR_MM_EQUIV_TX) ~ OUT_MALIG + Out_Death_1 + rcs(DON_AGE,3) + 
                     rcs(DON_HGT_CM,3) + rcs(DON_WGT_KG,3) + rcs(DON_CREAT,3) + 
@@ -205,9 +201,6 @@ DR_MISS_REG = lrm(is.na(REC_DR_MM_EQUIV_TX) ~ OUT_MALIG + Out_Death_1 + rcs(DON_
                     rcs(REC_WGT_KG,3)+REC_RACE_WHITE,
                   data=data_miss, x=TRUE, y=TRUE, maxit=1000)
 #hmr_imp[[1]]["REC_DR_MM_EQUIV_TX",]
-
-
-
 
 #REC_DRUG_INDUCTION
 INDUC_MISS_REG = lrm(is.na(REC_DRUG_INDUCTION) ~ OUT_MALIG + Out_Death_1 + rcs(DON_AGE,3) + 
@@ -255,12 +248,6 @@ HGT_MISS_REG1 = lrm(is.na(REC_HGT_CM) ~ OUT_MALIG + Out_Death_1 + rcs(DON_AGE,3)
                       rcs(REC_WGT_KG,3),
                     data=data_miss, x=TRUE, y=TRUE, maxit=1000)
 #hmr_imp[[1]]["REC_HGT_CM",]
-
-
-
-
-
-
 
 WGT_MISS_REG = lrm(is.na(REC_WGT_KG) ~ OUT_MALIG + Out_Death_1 + rcs(DON_AGE,3) + 
                      rcs(DON_HGT_CM,3) + rcs(DON_WGT_KG,3) + rcs(DON_CREAT,3) + 
@@ -376,6 +363,12 @@ data_mi <- transform(OUT_MALIG=as.factor(OUT_MALIG), Out_Death_1=as.factor(Out_D
                      REC_HIST_CIGARETTE=as.factor(REC_HIST_CIGARETTE),REC_HTN=as.factor(REC_HTN),
                      REC_CLCR_GEN=as.factor(REC_CLCR_GEN),
                      data_mi)
+
+
+####################################################################################### 
+# Run Multiple Imputation using 'MICE'package
+####################################################################################### 
+
 #Need to run imp once to then modify predictor matrix for imputation
 imp<-mice(data_mi,m=2,meth='pmm',print=F) 
 meth=imp$method
@@ -405,7 +398,9 @@ get_mid_dats<-function(imp_dats,imps)
   return(mid_dats)
 }
 
-
+####################################################################################### 
+# Create model using imputed missing data
+####################################################################################### 
 
 #Model Fit 
 f <- fit.mult.impute(OUT_MALIG ~ CAN_GENDER + rcs(REC_HGT_CM,3) + rcs(REC_CREAT,3) + 
@@ -444,10 +439,6 @@ plot(anova(fmid))
 # Metrics
 print(fmid, coef = FALSE)
 
-
-
-
-
 #### Function: get_c_CI ############
 # reps=number of replications
 # B=number of bootstrap samples 
@@ -474,6 +465,10 @@ get_c_CI<-function(reps,B,n,mod_f)
 (c_opt_corr <- 0.5 * (val_1[1, 5] + 1))
 (c_opt_corr <- 0.5 * (valmid[1, 5] + 1))
 
+####################################################################################### 
+# Create calibration plots using 500 bootstrapped samples
+####################################################################################### 
+
 # Calibration Plots
 cal_1 <- calibrate(f, B = 500)
 plot(cal_1)
@@ -490,7 +485,9 @@ calmid=calibrate(fmid, B = 500)
 plot(calmid,subtitles = T, xlab="Predicted Probability")
 
 
-
+####################################################################################### 
+# Run model validation using 500 bootstrapped samples
+####################################################################################### 
 
 # Validation
 val_1 <- validate(f, B = 500)
@@ -501,7 +498,9 @@ valmid
 
 
 
-
+####################################################################################### 
+# Create nomogram of model
+####################################################################################### 
 
 #### 
 #png(filename="nomogram.png",height=6,width=8,units="in",res=300)
@@ -529,9 +528,6 @@ plot(nomogram(labels_f, fun=function(x)1/(1+exp(-x)),  # or fun=plogis
               funlabel="Predicted Probability"),col.conf=c('red'),
      label.every=1,col.grid = gray(c(0.8, 0.95)),cex.axis=.5,lmgp=.1,cex.var=.65)
 #dev.off()
-
-
-
 
 ####### End of script 
 
